@@ -28,6 +28,7 @@ import { Dropzone } from "@mantine/dropzone";
 import Canvas from "@/components/canvas";
 import Timeline from "@/components/timeline";
 import { useMediaStore } from "@/store/media-store";
+import Sidebar from "@/components/Sidebar";
 
 export default function Home() {
   const [opened, { toggle }] = useDisclosure();
@@ -103,13 +104,15 @@ export default function Home() {
   };
 
   return (
+    <>
+    <Sidebar/>
     <AppShell
       key="app-shell"
       header={{ height: 60 }}
       navbar={{ width: 350, breakpoint: "sm", collapsed: { mobile: !opened } }}
       padding={0}
     >
-      <AppShell.Header>
+      <AppShell.Header style={{marginLeft : "80px"}}>
         <Group h="100%" px="md" justify="space-between">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
@@ -139,7 +142,7 @@ export default function Home() {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md" style={{ overflow: "auto", maxHeight: "calc(100vh - 60px)" }}>
+      <AppShell.Navbar p="md" style={{marginLeft : "80px", overflow: "auto", maxHeight: "calc(100vh - 60px)" }}>
         <AppShell.Section>
           <MediaPanel />
         </AppShell.Section>
@@ -280,5 +283,6 @@ export default function Home() {
         </Modal>
       </AppShell.Main>
     </AppShell>
+    </>
   );
 }

@@ -12,6 +12,7 @@ import {
     IconAdjustmentsHorizontal,
     IconContrast,
     IconHelp,
+    IconMenu2
   } from '@tabler/icons-react';
   
   import { Box, Stack, Tooltip, ActionIcon } from '@mantine/core';
@@ -19,6 +20,7 @@ import {
   import { useState } from 'react';
   
   const navItems = [
+    { label: '', icon: <IconMenu2 size={20} /> },
     { label: 'Search', icon: <IconSearch size={20} /> },
     { label: 'Settings', icon: <IconSettings size={20} /> },
     { label: 'Brand Kits', icon: <IconBrandHipchat size={20} /> },
@@ -33,17 +35,17 @@ import {
   ];
   
   export default function Sidebar() {
-    // const [active, setActive] = useState('Media');
+    const [active, setActive] = useState('Media');
   
     return (
-      <Box p="md" className={styles.sidebar} style={{ width: 80 }}>
+      <Box p="md" className={styles.sidebar} style={{ width: 80 , overflow: "scroll" }}>
         <Stack justify="space-between" className={styles.stack}>
-          <Stack gap="md">
+          <Stack gap="xs">
             {navItems.map((item) => (
               <Tooltip label={item.label} position="right" key={item.label}>
                 <div className={styles.navItem}>
                   <ActionIcon
-                    // onClick={() => setActive(item.label)}
+                    onClick={() => setActive(item.label)}
                     className={styles.iconButton}
                     variant="subtle"
                     size="xl"

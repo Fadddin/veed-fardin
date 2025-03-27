@@ -10,7 +10,7 @@ const theme = createTheme({
 });
 
 export const metadata = {
-  title: "VEED.io Clone",
+  title: "VEED.io replica",
   description: "A replica of the VEED.io video editor interface",
 };
 
