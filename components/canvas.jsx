@@ -7,9 +7,12 @@ import { useMediaStore } from "@/store/media-store";
 import { useDraggable } from "@/hooks/use-draggable";
 import { useResizable } from "@/hooks/use-resizable";
 
-export default function Canvas({ isPlaying, currentTime }) {
+
+export default function Canvas({ isPlaying, currentTime , openUploadModal}) {
   const canvasRef = useRef(null);
   const { mediaItems, selectMedia, selectedMediaId, updateMediaItem } = useMediaStore();
+
+
 
   const visibleMedia = mediaItems.filter(
     (item) => currentTime >= item.startTime && currentTime <= item.endTime
@@ -44,7 +47,7 @@ export default function Canvas({ isPlaying, currentTime }) {
             leftSection={<IconPlus size={16} />}
             onClick={(e) => {
               e.stopPropagation();
-              // Open upload modal logic would go here
+              openUploadModal(); 
             }}
           >
             Add media to this project

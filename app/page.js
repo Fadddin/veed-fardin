@@ -229,7 +229,7 @@ export default function Home() {
           marginLeft: "auto",
           marginRight: "auto"
         }}>
-          <Canvas isPlaying={isPlaying} currentTime={currentTime} />
+          <Canvas isPlaying={isPlaying} currentTime={currentTime} openUploadModal={openUploadModal}/>
         </Box>
 
         <Box style={{ height: "60px", marginLeft : "80px", borderTop: "1px solid #e0e0e0", background: "white" }}>
