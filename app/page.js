@@ -1,103 +1,284 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import MediaPanel from "@/components/mediaPanel";
+import {
+  AppShell,
+  Burger,
+  Group,
+  Text,
+  Button,
+  NumberInput,
+  Stack,
+  Box,
+  Divider,
+  ActionIcon,
+  Modal,
+  Center,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import {
+  IconSettings,
+  IconRecordMail,
+  IconArrowLeft,
+  IconArrowRight,
+  IconUpload,
+} from "@tabler/icons-react";
+import { Dropzone } from "@mantine/dropzone";
+import Canvas from "@/components/canvas";
+import Timeline from "@/components/timeline";
+import { useMediaStore } from "@/store/media-store";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [opened, { toggle }] = useDisclosure();
+  const [uploadModalOpened, { open: openUploadModal, close: closeUploadModal }] = useDisclosure(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(60);
+  const timerRef = useRef(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+  const {
+    mediaItems,
+    addMediaItem,
+    updateMediaItem,
+    selectedMediaId,
+    selectMedia,
+    selectedMedia,
+  } = useMediaStore();
+
+  const handleFileUpload = (files) => {
+    files.forEach((file) => {
+      const isVideo = file.type.startsWith("video/");
+      const url = URL.createObjectURL(file);
+
+      addMediaItem({
+        id: `media-${Date.now()}`,
+        type: isVideo ? "video" : "image",
+        url,
+        width: 320,
+        height: 240,
+        x: 100,
+        y: 100,
+        startTime: 0,
+        endTime: isVideo ? 30 : 10,
+        duration: isVideo ? 30 : 0,
+        filename: file.name,
+      });
+    });
+
+    closeUploadModal();
+  };
+
+  const togglePlayback = () => {
+    setIsPlaying((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      timerRef.current = setInterval(() => {
+        setCurrentTime((prev) => {
+          if (prev >= duration) {
+            setIsPlaying(false);
+            return 0;
+          }
+          return prev + 0.1;
+        });
+      }, 100);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isPlaying, duration]);
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    const milliseconds = Math.floor((time % 1) * 10);
+    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds}`;
+  };
+
+  return (
+    <AppShell
+      key="app-shell"
+      header={{ height: 60 }}
+      navbar={{ width: 350, breakpoint: "sm", collapsed: { mobile: !opened } }}
+      padding={0}
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Text fw={700}>Edit Video</Text>
+          </Group>
+
+          <Group>
+            <Text size="sm" c="dimmed">Project Name</Text>
+            <Text size="sm" c="dimmed">Log in to save progress</Text>
+
+            <Group ml="xl">
+              <ActionIcon variant="subtle" color="gray">
+                <IconArrowLeft size={18} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" color="gray">
+                <IconArrowRight size={18} />
+              </ActionIcon>
+            </Group>
+
+            <Text size="sm" c="dimmed">
+              Save your project for later — sign up or log in
+            </Text>
+
+            <Button variant="filled" color="orange" radius="md">Upgrade</Button>
+            <Button variant="filled" color="dark" radius="md">Done</Button>
+          </Group>
+        </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md" style={{ overflow: "auto", maxHeight: "calc(100vh - 60px)" }}>
+        <AppShell.Section>
+          <MediaPanel />
+        </AppShell.Section>
+
+        <Divider my="md" />
+
+        {selectedMedia && (
+          <>
+            <AppShell.Section>
+              <Stack>
+                <Text fw={600} size="sm">Media Properties</Text>
+
+                <Group>
+                  <Text size="sm">Width:</Text>
+                  <NumberInput
+                    value={selectedMedia.width}
+                    onChange={(val) => updateMediaItem(selectedMedia.id, { width: Number(val) })}
+                    min={50}
+                    max={1920}
+                    w={100}
+                  />
+                </Group>
+
+                <Group>
+                  <Text size="sm">Height:</Text>
+                  <NumberInput
+                    value={selectedMedia.height}
+                    onChange={(val) => updateMediaItem(selectedMedia.id, { height: Number(val) })}
+                    min={50}
+                    max={1080}
+                    w={100}
+                  />
+                </Group>
+
+                <Group>
+                  <Text size="sm">Start Time:</Text>
+                  <NumberInput
+                    value={selectedMedia.startTime}
+                    onChange={(val) => updateMediaItem(selectedMedia.id, { startTime: Number(val) })}
+                    min={0}
+                    max={duration}
+                    step={0.1}
+                    decimalScale={1}
+                    w={100}
+                  />
+                </Group>
+
+                <Group>
+                  <Text size="sm">End Time:</Text>
+                  <NumberInput
+                    value={selectedMedia.endTime}
+                    onChange={(val) => updateMediaItem(selectedMedia.id, { endTime: Number(val) })}
+                    min={selectedMedia.startTime}
+                    max={duration}
+                    step={0.1}
+                    decimalScale={1}
+                    w={100}
+                  />
+                </Group>
+              </Stack>
+            </AppShell.Section>
+
+            <Divider my="md" />
+          </>
+        )}
+
+        <AppShell.Section>
+          <Stack>
+            <Text fw={600} size="sm">Audio</Text>
+            <Group>
+              <Text size="sm">Clean Audio</Text>
+              <Text size="xs" c="dimmed">Remove background noise</Text>
+            </Group>
+          </Stack>
+        </AppShell.Section>
+      </AppShell.Navbar>
+
+      <AppShell.Main bg="#f0f0f0">
+        <Box style={{
+          height: "calc(100vh - 240px)",
+          position: "relative",
+          margin: "20px",
+          maxWidth: "800px",
+          marginLeft: "auto",
+          marginRight: "auto"
+        }}>
+          <Canvas isPlaying={isPlaying} currentTime={currentTime} />
+        </Box>
+
+        <Box style={{ height: "60px", borderTop: "1px solid #e0e0e0", background: "white" }}>
+          <Timeline
+            duration={duration}
+            currentTime={currentTime}
+            setCurrentTime={setCurrentTime}
+            isPlaying={isPlaying}
+            togglePlayback={togglePlayback}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </Box>
+
+        <Modal
+          opened={uploadModalOpened}
+          onClose={closeUploadModal}
+          title="Let's make a video!"
+          centered
+          size="lg"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <Box p="md">
+            <Dropzone
+              onDrop={handleFileUpload}
+              accept={["image/*", "video/*"]}
+              h={200}
+              style={{
+                border: "1px dashed #aaa",
+                borderRadius: "8px",
+                background: "#f8f9fe",
+              }}
+            >
+              <Center h="100%">
+                <Stack align="center" gap="xs">
+                  <ActionIcon size="xl" radius="xl" variant="light" color="blue">
+                    <IconUpload size={24} />
+                  </ActionIcon>
+                  <Text size="md" fw={500}>Upload files</Text>
+                  <Text size="xs" c="dimmed">Choose files or drag them here</Text>
+                </Stack>
+              </Center>
+            </Dropzone>
+
+            <Group justify="space-between" mt="xl">
+              <Button variant="light" leftSection={<IconRecordMail size={18} />}>
+                Start by recording
+              </Button>
+              <Button variant="light" leftSection={<IconSettings size={18} />}>
+                Start with AI
+              </Button>
+            </Group>
+          </Box>
+        </Modal>
+      </AppShell.Main>
+    </AppShell>
   );
 }
