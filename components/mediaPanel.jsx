@@ -71,7 +71,7 @@ export default function MediaPanel() {
         <Text>100%</Text>
       </Group>
 
-      <Group justify="apart">
+      <Group justify="apart" className="round-corners-container">
         <Group gap="xs">
           <IconWaveSawTool size={20} />
           <Text>Fade Audio In/Out</Text>
