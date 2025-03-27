@@ -232,7 +232,7 @@ export default function Home() {
           <Canvas isPlaying={isPlaying} currentTime={currentTime} />
         </Box>
 
-        <Box style={{ height: "60px", borderTop: "1px solid #e0e0e0", background: "white" }}>
+        <Box style={{ height: "60px", marginLeft : "80px", borderTop: "1px solid #e0e0e0", background: "white" }}>
           <Timeline
             duration={duration}
             currentTime={currentTime}
